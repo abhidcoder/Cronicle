@@ -1,5 +1,8 @@
 # Cronicle
 
+
+https://github.com/abhidcoder/Cronicle/blob/cronicleChanges/unnamed.png
+
 ## Problem Statement
 
 Managing scheduled, repeating, and on-demand jobs across a distributed infrastructure often requires complex setups, external databases, and limited real-time visibility. Organizations need a way to orchestrate tasks across multiple servers without the overhead of heavy database dependencies, manual IP configuration, or fragile coordination mechanisms.
@@ -123,3 +126,4 @@ Cronicle follows a **Master–Slave Distributed Model**.
 3. Run the auto-install script:
    ```bash
    curl -s https://raw.githubusercontent.com/jhuckaby/Cronicle/master/bin/install.js | node
+
