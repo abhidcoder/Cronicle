@@ -12,6 +12,20 @@ var sqparse = require('shell-quote').parse;
 var JSONStream = require('pixl-json-stream');
 var Tools = require('pixl-tools');
 
+// Windows: rename does not overwrite existing file; unlink dest first then rename
+function renameSyncWin(src, dest) {
+	try {
+		fs.renameSync(src, dest);
+	} catch (e) {
+		if (process.platform === 'win32' && (e.code === 'EPERM' || e.code === 'EEXIST')) {
+			try { fs.unlinkSync(dest); } catch (e2) {}
+			fs.renameSync(src, dest);
+		} else {
+			throw e;
+		}
+	}
+}
+
 var args = process.argv.slice(-2);
 if (!args[1] || !args[1].match(/\.json$/)) {
 	throw new Error("Usage: ./run-detached.js detached /PATH/TO/JSON/FILE.json");
@@ -23,15 +37,23 @@ fs.unlink( job_file, function(err) {;} );
 
 var child_cmd = job.command;
 var child_args = [];
-
-// if command has cli args, parse using shell-quote
 if (child_cmd.match(/\s+(.+)$/)) {
 	var cargs_raw = RegExp.$1;
 	child_cmd = child_cmd.replace(/\s+(.+)$/, '');
 	child_args = sqparse( cargs_raw, process.env );
 }
+// Windows: run .js/.mjs/.cjs with node
+var spawn_cmd = child_cmd;
+var spawn_args = child_args.slice(0);
+if (process.platform === 'win32') {
+	var ext = path.extname(child_cmd).toLowerCase();
+	if (ext === '.js' || ext === '.mjs' || ext === '.cjs') {
+		spawn_cmd = process.execPath;
+		spawn_args.unshift( path.isAbsolute(child_cmd) ? child_cmd : path.resolve(child_cmd) );
+	}
+}
 
-var child = cp.spawn( child_cmd, child_args, { 
+var child = cp.spawn( spawn_cmd, spawn_args, { 
 	stdio: ['pipe', 'pipe', fs.openSync(job.log_file, 'a')] 
 } );
 
@@ -72,7 +94,7 @@ child.on('error', function (err) {
 		code: 1,
 		description: "Script failed: " + Tools.getErrorDescription(err)
 	}) );
-	fs.renameSync( queue_file + '.tmp', queue_file );
+	renameSyncWin( queue_file + '.tmp', queue_file );
 } );
 
 child.on('exit', function (code, signal) {
@@ -91,10 +113,9 @@ child.on('exit', function (code, signal) {
 	updates.complete = 1;
 	updates.time_end = Tools.timeNow();
 	
-	// write file atomically, just in case
 	var queue_file = job.queue_dir + '/' + job.id + '-complete.json';
 	fs.writeFileSync( queue_file + '.tmp', JSON.stringify(updates) );
-	fs.renameSync( queue_file + '.tmp', queue_file );
+	renameSyncWin( queue_file + '.tmp', queue_file );
 } );
 
 // silence EPIPE errors on child STDIN
@@ -117,10 +138,9 @@ update_timer = setInterval( function() {
 		updates.id = job.id;
 		updates.in_progress = 1;
 		
-		// write file atomically, just in case
 		var queue_file = job.queue_dir + '/' + job.id + '-' + Date.now() + '.json';
 		fs.writeFileSync( queue_file + '.tmp', JSON.stringify(updates) );
-		fs.renameSync( queue_file + '.tmp', queue_file );
+		renameSyncWin( queue_file + '.tmp', queue_file );
 		
 		updates = {};
 	}
