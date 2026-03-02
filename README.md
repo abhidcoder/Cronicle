@@ -126,4 +126,74 @@ Cronicle follows a **Master–Slave Distributed Model**.
 3. Run the auto-install script:
    ```bash
    curl -s https://raw.githubusercontent.com/jhuckaby/Cronicle/master/bin/install.js | node
+   ```
+
+---
+
+## Running on Windows
+
+### 1. One-time setup (if you haven’t already)
+
+**Install dependencies:**
+```powershell
+cd c:\Users\abhid\Desktop\cronicle
+npm install --ignore-scripts
+```
+
+**Apply Windows patches (run after every `npm install`):**
+```powershell
+node bin/apply-windows-patches.js
+```
+
+**One-time storage setup (creates admin user and default data):**
+```powershell
+node bin/storage-cli.js setup
+```
+- If it says “Storage has already been set up”, you can skip this.
+- If it runs, note the hostname it prints. If it’s not `localhost`, edit `conf/config.json` and set `hostname` and `ip` to that hostname and your machine’s IP.
+
+**Prepare the web UI (fixes 404):**
+```powershell
+node bin/prepare-ui-windows.js
+```
+This creates `htdocs/index.html` and copies JS/CSS/fonts from `node_modules` into `htdocs`. Run it after `npm install`; if you get 404 in the browser, run it again and restart Cronicle.
+
+### 2. Start Cronicle
+
+```powershell
+cd c:\Users\abhid\Desktop\cronicle
+$env:CRONICLE_foreground="1"
+$env:CRONICLE_echo="1"
+node lib/main.js
+```
+
+Or in one line:
+```powershell
+cd c:\Users\abhid\Desktop\cronicle; $env:CRONICLE_foreground="1"; $env:CRONICLE_echo="1"; node lib/main.js
+```
+
+Keep this terminal open while using Cronicle.
+
+### 3. Use the web UI
+
+1. Open **http://localhost:3012/** in your browser.
+2. Log in with **admin** / **admin** (change the password after first login).
+3. Create or run events from the Schedule page.
+
+### 4. Stop Cronicle
+
+In the terminal where it’s running, press **Ctrl+C**.
+
+### If you get 404 in the web UI
+
+1. Run **`node bin/prepare-ui-windows.js`** (creates `htdocs/index.html` and copies UI assets from `node_modules`).
+2. Restart Cronicle and reload http://localhost:3012/
+
+### Quick start (if setup is already done)
+
+```powershell
+cd c:\Users\abhid\Desktop\cronicle
+$env:CRONICLE_foreground="1"; $env:CRONICLE_echo="1"; node lib/main.js
+```
+Then open http://localhost:3012/ and log in with **admin** / **admin**.
 
