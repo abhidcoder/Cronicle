@@ -2,16 +2,14 @@
 
 This document summarizes the changes made so Cronicle runs on Windows.
 
-## 1. Config (single-node master)
+## 1. Config (included in repo)
 
-Ensure `conf/config.json` has:
+**conf/config.json** and **conf/setup.json** are included with Windows-friendly defaults:
 
-- **`"master": true`** – so this server becomes master immediately (no 60s wait).
-- **`"hostname"` and `"ip"`** – must match the server entry in cluster data (e.g. from `node bin/storage-cli.js setup`). If your setup created a server like `"itachi"`, add:
-  - `"hostname": "itachi"`
-  - `"ip": "172.28.0.1"` (or your machine’s IP)
+- **conf/config.json** – Contains `"master": true`, `"hostname": "localhost"`, `"ip": "127.0.0.1"`. So this server becomes master immediately. If you already ran `node bin/storage-cli.js setup` and it registered a different hostname (e.g. your PC name or `itachi`), edit `conf/config.json` and set `hostname` and `ip` to match what setup used.
+- **conf/setup.json** – Used by `node bin/storage-cli.js setup` (one-time) to create admin user, plugins, categories, and server groups. See **conf/README.md** for details.
 
-Without these, the UI may show “Waiting for master server” or “This API call can only be invoked on the master server.”
+Without matching hostname/ip, the UI may show “Waiting for master server” or “This API call can only be invoked on the master server.”
 
 ---
 
