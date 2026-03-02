@@ -1,112 +1,125 @@
-# xyOps™
+# Cronicle
 
-![xyOps Screenshot](https://pixlcore.com/images/blog/xyops/workflow-edit.webp)
+## Problem Statement
 
-Announcing **xyOps™**, the spiritual successor to Cronicle!  Beta v0.9 is now available for testing:
+Managing scheduled, repeating, and on-demand jobs across a distributed infrastructure often requires complex setups, external databases, and limited real-time visibility. Organizations need a way to orchestrate tasks across multiple servers without the overhead of heavy database dependencies, manual IP configuration, or fragile coordination mechanisms.
 
-https://github.com/pixlcore/xyops
+## Solution Overview
 
-Let me know what you think!
+**Cronicle** is a multi-server task scheduler and runner built with **Node.js**, designed around a distributed **Master–Slave architecture**.  
+The master server provides a visual web-based UI for scheduling and orchestration, while slave servers execute jobs based on configurable run modes.
 
-Cronicle will still be supported and maintained going forward (mainly bug fixes and security issues will be patched).
+Cronicle offers real-time visibility into job execution, including **live log streaming**, **CPU usage**, and **memory tracking** across the entire cluster. It simplifies deployment by:
 
-# Overview
+- Using **auto-discovery** for new servers
+- Avoiding external databases by storing all configuration and state as **JSON files on disk**
 
-**Cronicle** is a multi-server task scheduler and runner, with a web based front-end UI.  It handles both scheduled, repeating and on-demand jobs, targeting any number of worker servers, with real-time stats and live log viewer.  It's basically a fancy [Cron](https://en.wikipedia.org/wiki/Cron) replacement written in [Node.js](https://nodejs.org/).  You can give it simple shell commands, or write Plugins in virtually any language.
+---
 
-![Main Screenshot](https://pixlcore.com/software/cronicle/screenshots-new/job-details-complete.png)
+## Architecture
 
-## Features at a Glance
+Cronicle follows a **Master–Slave Distributed Model**.
 
-* Single or multi-server setup.
-* Automated failover to backup servers.
-* Auto-discovery of nearby servers.
-* Real-time job status with live log viewer.
-* Plugins can be written in any language.
-* Schedule events in multiple timezones.
-* Optionally queue up long-running events.
-* Track CPU and memory usage for each job.
-* Historical stats with performance graphs.
-* Simple JSON messaging system for Plugins.
-* Web hooks for external notification systems.
-* Simple REST API for scheduling and running events.
-* API Keys for authenticating remote apps.
+### Master Server
+- Central hub for the web-based UI
+- Handles all scheduling logic
+- Maintains a master list of all completed jobs
+- Provides analytics, logs, and cluster-wide visibility
 
-## Documentation
+### Slave Servers
+- Execution nodes for dispatched jobs (scripts or plugins)
+- Track CPU and memory usage, including child processes
+- Stream real-time logs and stats back to the master
 
-The Cronicle documentation is split up across these files:
+### Discovery & Storage
+- **Auto-discovery** identifies nearby servers automatically
+- **Database-less architecture**: all data stored as local JSON files
 
-- &rarr; **[Installation & Setup](https://github.com/jhuckaby/Cronicle/blob/master/docs/Setup.md)**
-- &rarr; **[Configuration](https://github.com/jhuckaby/Cronicle/blob/master/docs/Configuration.md)**
-- &rarr; **[Web UI](https://github.com/jhuckaby/Cronicle/blob/master/docs/WebUI.md)**
-- &rarr; **[Plugins](https://github.com/jhuckaby/Cronicle/blob/master/docs/Plugins.md)**
-- &rarr; **[Command Line](https://github.com/jhuckaby/Cronicle/blob/master/docs/CommandLine.md)**
-- &rarr; **[Inner Workings](https://github.com/jhuckaby/Cronicle/blob/master/docs/InnerWorkings.md)**
-- &rarr; **[API Reference](https://github.com/jhuckaby/Cronicle/blob/master/docs/APIReference.md)**
-- &rarr; **[Development](https://github.com/jhuckaby/Cronicle/blob/master/docs/Development.md)**
+### Deployment Notes
+- Self-hosted and open source
+- For auto-discovery, VM instances should be hosted within the same **VPC**
+- Since standard network broadcasts may be restricted (e.g., on GCP), ensure firewall rules allow internal communication between master and slave instances
 
-## Glossary
+---
 
-A quick introduction to some common terms used in Cronicle:
+## Tech Stack
 
-| Term | Description |
-|------|-------------|
-| **Primary Server** | The primary server which keeps time and runs the scheduler, assigning jobs to other servers, and/or itself. |
-| **Backup Server** | A worker server which will automatically become primary and take over duties if the current primary dies. |
-| **Worker Server** | A server which sits idle until it is assigned jobs by the primary server. |
-| **Server Group** | A named group of servers which can be targeted by events, and tagged as "primary eligible", or "worker only". |
-| **API Key** | A special key that can be used by external apps to send API requests into Cronicle.  Remotely trigger jobs, etc. |
-| **User** | A human user account, which has a username and a password.  Passwords are salted and hashed with [bcrypt](https://en.wikipedia.org/wiki/Bcrypt). |
-| **Plugin** | Any executable script in any language, which runs a job and reads/writes JSON to communicate with Cronicle. |
-| **Schedule** | The list of events, which are scheduled to run at particular times, on particular servers. |
-| **Category** | Events can be assigned to categories which define defaults and optionally a color highlight in the UI. |
-| **Event** | An entry in the schedule, which may run once or many times at any interval.  Each event points to a Plugin, and a server or group to run it. |
-| **Job** | A running instance of an event.  If an event is set to run hourly, then a new job will be created every hour. |
+- **Frontend**: Skeleton.css, Normalize.css, jQuery, Font Awesome  
+- **Backend**: Node.js  
+- **Database**: None (JSON files on disk)  
+- **Cloud / Infrastructure**:
+  - Distributed cluster
+  - Auto-discovery
+  - Auto-failover
+  - API Key–based REST API for remote integrations
 
-# Colophon
+---
 
-We stand on the shoulders of giants.  Cronicle was built using these awesome Node modules:
+## Features
 
-| Module Name | Description | License |
-|-------------|-------------|---------|
-| [async](https://www.npmjs.com/package/async) | Higher-order functions and common patterns for asynchronous code. | MIT |
-| [bcrypt-node](https://www.npmjs.com/package/bcrypt-node) | Native JS implementation of BCrypt for Node. | BSD 3-Clause |
-| [chart.js](https://www.npmjs.com/package/chart.js) | Simple HTML5 charts using the canvas element. | MIT |
-| [daemon](https://www.npmjs.com/package/daemon) | Add-on for creating \*nix daemons. | MIT |
-| [errno](https://www.npmjs.com/package/errno) | Node.js libuv errno details exposed. | MIT |
-| [font-awesome](https://www.npmjs.com/package/font-awesome) | The iconic font and CSS framework. | OFL-1.1 and MIT |
-| [form-data](https://www.npmjs.com/package/form-data) | A library to create readable "multipart/form-data" streams. Can be used to submit forms and file uploads to other web applications. | MIT |
-| [formidable](https://www.npmjs.com/package/formidable) | A Node.js module for parsing form data, especially file uploads. | MIT |
-| [jstimezonedetect](https://www.npmjs.com/package/jstimezonedetect) | Automatically detects the client or server timezone. | MIT |
-| [jquery](https://www.npmjs.com/package/jquery) | JavaScript library for DOM operations. | MIT |
-| [mdi](https://www.npmjs.com/package/mdi) | Material Design Webfont. This includes the Stock and Community icons in a single webfont collection. | OFL-1.1 and MIT |
-| [mkdirp](https://www.npmjs.com/package/mkdirp) | Recursively mkdir, like `mkdir -p`. | MIT |
-| [moment](https://www.npmjs.com/package/moment) | Parse, validate, manipulate, and display dates. | MIT |
-| [moment-timezone](https://www.npmjs.com/package/moment-timezone) | Parse and display moments in any timezone. | MIT |
-| [netmask](https://www.npmjs.com/package/netmask) | Parses and understands IPv4 CIDR blocks so they can be explored and compared. | MIT |
-| [node-static](https://www.npmjs.com/package/node-static) | A simple, compliant file streaming module for node. | MIT |
-| [nodemailer](https://www.npmjs.com/package/nodemailer) | Easy as cake e-mail sending from your Node.js applications. | MIT |
-| [shell-quote](https://www.npmjs.com/package/shell-quote) | Quote and parse shell commands. | MIT |
-| [socket.io](https://www.npmjs.com/package/socket.io) | Node.js real-time framework server (Websockets). | MIT |
-| [socket.io-client](https://www.npmjs.com/package/socket.io-client) | Client library for server-to-server socket.io connections. | MIT |
-| [uglify-js](https://www.npmjs.com/package/uglify-js) | JavaScript parser, mangler/compressor and beautifier toolkit. | BSD-2-Clause |
-| [zxcvbn](https://www.npmjs.com/package/zxcvbn) | Realistic password strength estimation, from Dropbox. | MIT |
+### Scheduling & Orchestration
+- **Visual Event Scheduler**  
+  Schedule one-time or recurring events using a powerful visual multi-selector that supports:
+  - Any combination of time units
+  - Multiple timezones
 
-## Companies Using Cronicle
+- **Chain of Events**  
+  Automatically trigger subsequent jobs when a task completes, passing custom data between events to ensure sequential execution.
 
-Cronicle is known to be in use by the following companies:
+### Monitoring & Analytics
+- **Real-Time Monitoring**
+  - Live log streaming
+  - Graphical progress bars
+  - Estimated time remaining for running jobs
 
-- [Agnes & Dora](https://agnesanddora.com)
-- [Sling TV](https://sling.com)
+- **Distributed Resource Tracking**
+  - Tracks CPU and memory usage for main and child processes
+  - Historical graphs to detect performance trends
 
-# License
+- **Analytical Dashboard**
+  - Centralized real-time stats
+  - Pie charts and historical graphs
+  - Visualization of custom performance metrics
 
-**The MIT License (MIT)**
+### Extensibility & Control
+- **Extensible Plugin System**
+  - Write plugins in any language using a simple JSON protocol
+  - Define custom UI controls (text fields, checkboxes, etc.) via the Parameter system
 
-*Copyright (c) 2015 - 2025 Joseph Huckaby*
+- **User-Defined Execution Limits**
+  - Set custom CPU and memory limits
+  - Configure sustain thresholds at category or event level
+  - Avoid arbitrary hard-coded timeouts
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+- **Intelligent Task Queuing**
+  - High concurrency support
+  - Randomized load balancing across server groups
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+### Security & Reliability
+- **User-Based Access & Security**
+  - Web-based management UI
+  - External JSON REST API secured with API keys
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+- **Retry & Alerts**
+  - Automatic retries for failed jobs
+  - Alerting mechanisms for failures and thresholds
+
+### Performance & Cost
+- **Cost-Effective & Lightweight**
+  - Open-source (MIT Licensed)
+  - No external database required
+  - Minimal infrastructure overhead
+
+- **High Scalability**
+  - No inherent software limits on cluster size
+  - Scale to any number of slave servers
+
+---
+
+## Setup Instructions
+
+1. Install **Node.js** on your primary server.
+2. Log in as `root`.
+3. Run the auto-install script:
+   ```bash
+   curl -s https://raw.githubusercontent.com/jhuckaby/Cronicle/master/bin/install.js | node
