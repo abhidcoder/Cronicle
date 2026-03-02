@@ -57,11 +57,14 @@ var external = [
 	['chart.js/dist/Chart.min.js', 'js/external/Chart.min.js'],
 	['jstimezonedetect/dist/jstz.min.js', 'js/external/jstz.min.js']
 ];
+var missingExt = [];
 external.forEach(function (pair) {
 	var src = path.join(nm, pair[0]);
 	var dest = path.join(htdocs, pair[1]);
 	if (copy(src, dest)) console.log('  ' + pair[1]);
+	else missingExt.push(pair[1]);
 });
+if (missingExt.length) console.warn('  MISSING (run npm install first): ' + missingExt.join(', '));
 
 // js/common (pixl-webapp)
 var commonSrc = path.join(nm, 'pixl-webapp', 'js');

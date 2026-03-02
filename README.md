@@ -184,10 +184,11 @@ Keep this terminal open while using Cronicle.
 
 In the terminal where it’s running, press **Ctrl+C**.
 
-### If you get 404 in the web UI
+### If you get 404 or a blank UI (only footer visible)
 
-1. Run **`node bin/prepare-ui-windows.js`** (creates `htdocs/index.html` and copies UI assets from `node_modules`).
-2. Restart Cronicle and reload http://localhost:3012/
+1. Run **`node bin/prepare-ui-windows.js`** (must be run **after** `npm install` so it can copy jQuery, Moment, etc. into `htdocs`).
+2. Restart Cronicle, then hard-refresh the page (**Ctrl+F5**).
+3. If still blank, open **F12** → **Console** and check for red errors; open **Network** and see if any script or CSS returns 404. Fix any missing files by running the prepare script again.
 
 ### Quick start (if setup is already done)
 
